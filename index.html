@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+</head>
+<body>
+    <div class="container">
+        <section class="tools-board">
+            <div class="block">
+                <label>Shapes</label>
+                <ul class="options">
+                    <li class="option tool" id="circle">
+                        <img src="icons/circle.svg">
+                        <span>Circle</span>
+                    </li>
+                    <li class="option tool" id="rectangle">
+                        <img src="icons/rectangle.svg">
+                        <span>Rectangle</span>
+                    </li>
+                   <li class="option tool" id="straight-line">
+                        <img src="icons/straight-line.png" width="20" height="20">
+                        <span>Straight Line</span>
+                    </li>
+                    <li class="option">
+                        <input type="checkbox" id="fill-color">
+                        <label for="fill-color">Fill color</label>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="block">
+                <label>Options</label>
+                <ul class="options">
+                    <li class="option active tool" id="brush">
+                        <img src="icons/brush.svg">
+                        <span>Brush</span>
+                    </li>
+                    <li class="option tool" id="eraser">
+                        <img src="icons/eraser.svg">
+                        <span>Eraser</span>
+                    </li>
+                    <li class="option">
+                        <input type="range" value=5 min=1 max=10 id="size-slider">
+                    </li>
+                </ul>
+            </div>
+
+            <div class="block color">
+                <label>Colors</label>
+                <br>
+                <div onClick="setColor(this)" class="color-pallete" style="background:red"></div>
+                <div onClick="setColor(this)" class="color-pallete" style="background:blue"></div>
+                <div onClick="setColor(this)" class="color-pallete" style="background:green"></div>
+                <div onClick="setColor(this)" class="color-pallete" style="background:black"></div>
+                <input type="color" class="color-picker" value="#FFC0CB">
+            </div>
+            
+            <div class="block special-button">
+                <label>Options</label>
+                <div>
+                    <img src="icons/clear.png" width="20" height="20">
+                    <button class="clear-canvas button">Clear Canvas</button>
+                </div>
+                <div>
+                    <img src="icons/save.png" width="20" height="20">
+                    <button class="save-image button">Save As Image</button>
+                </div>
+                <div>
+                    <img src="icons/undo.png" width="20" height="20">
+                    <button class="undo button">Undo</button>
+                </div>
+                <div>
+                    <img src="icons/redo.png" width="20" height="20">
+                    <button class="reundo button">Redo</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="drawing-board">
+            <canvas>
+            </canvas>
+        </section>
+    </div>
+    <script src="script.js"></script>
+    
+</body>
+</html>

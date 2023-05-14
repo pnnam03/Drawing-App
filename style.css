@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background: pink;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  gap: 10px;
+  max-width: 1050;
+}
+
+section {
+  background: white;
+  border-radius: 7px; 
+  padding: 10px;
+  height: 100vh;
+}
+
+.block .options .option {
+  display: flex;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.tools-board {
+  padding-left: 30px;
+}
+
+.block .options {
+  list-style: none;
+}
+
+.drawing-board{
+  flex: 1;
+}
+
+.drawing-board canvas{
+  width: 100%;
+  height: 100%;
+}
+
+.option:is(:hover, .active) :where(span,label){
+  filter: invert(17%) sepia(90%) saturate(3000%) hue-rotate(900deg) brightness(100%) contrast(100%);
+
+}
+.option:is(:hover, .active) img{
+  filter: invert(17%) sepia(90%) saturate(3000%) hue-rotate(900deg) brightness(100%) contrast(100%);
+}
+
+li {
+  margin-left: 15px;
+}
+
+span {
+  margin-left: 5px;
+}
+
+label {
+  margin-left: 10px;
+}
+
+.color-pallete{
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  margin-left: 10px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.color-picker {
+  width: 30px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.button {
+  border: none;
+  background-color: white;
+ font-size: 16px;
+  cursor: pointer;
+}
+
+.block div{
+  margin-left: 15px;
+}
+
+
+.button:hover{
+  color: #0095F3;
+}
