@@ -6,6 +6,8 @@ const sizeSlider = document.querySelector("#size-slider");
 const fillColor = document.querySelector("#fill-color");
 const undoBtn = document.querySelector(".undo");
 const reundoBtn = document.querySelector(".reundo");
+const saveBlock = document.querySelector("#save-block");
+const saveBtn = document.querySelector(".save-image");
 
 ctx = canvas.getContext("2d");
 currentTool = "brush";
@@ -17,13 +19,20 @@ preX = 0;
 preY = 0;
 preRadius = 0;
 let snapshot = null,
-  curSnapshot = null;
+  curSnapshot = null,
+  lastSnapshot = undefined;
 
 window.addEventListener("load", () => {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
   reundoBtn.disabled = true;
 });
+
+window.addEventListener("resize",() => {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  ctx.putImageData(lastSnapshot,0,0);
+})
 
 const drawCircle = (e) => {
   radius = Math.sqrt(
@@ -71,6 +80,7 @@ const draw = (e) => {
   } else if (currentTool == "straight-line") {
     drawStraightLine(e);
   }
+  lastSnapshot = ctx.getImageData(0,0,canvas.width, canvas.height);
 };
 
 const mouseDown = (e) => {
@@ -144,3 +154,11 @@ reundoBtn.addEventListener("click", () => {
   reundoBtn.disabled = true;
   undoBtn.disabled = false;
 });
+
+saveBtn.addEventListener("click",() => {
+  console.log("btn clicked");
+  const link = document.createElement("a");
+  link.download = "myImage.jpg";
+  link.href = canvas.toDataURL();
+  link.click();
+})
