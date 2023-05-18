@@ -20,7 +20,7 @@ preY = 0;
 preRadius = 0;
 let snapshot = null,
   curSnapshot = null,
-  lastSnapshot = undefined;
+  lastSnapshot = null;
 
 window.addEventListener("load", () => {
   canvas.width = canvas.offsetWidth;
@@ -31,6 +31,7 @@ window.addEventListener("load", () => {
 window.addEventListener("resize",() => {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
+  if (lastSnapshot != null)
   ctx.putImageData(lastSnapshot,0,0);
 })
 
