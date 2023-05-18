@@ -111,9 +111,17 @@ const clearCanvas = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-canvas.addEventListener("mousedown", mouseDown);
-canvas.addEventListener("mouseup", mouseUp);
-canvas.addEventListener("mousemove", draw);
+["mousedown", "touchstart"].forEach(function(e){
+  canvas.addEventListener(e, mouseDown);
+})
+
+["mouseup", "touchend"].forEach(function(e){
+canvas.addEventListener(e, mouseUp);
+})
+
+["mousemove", "touchmove"].forEach(function(e){
+  canvas.addEventListener(e, draw);
+})
 clearBtn.addEventListener("click", clearCanvas);
 
 toolBtns.forEach((btn) => {
