@@ -4,7 +4,6 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Poppins', sans-serif;
-  touch-action: none;
 }
 
 body {
@@ -25,6 +24,10 @@ section {
   border-radius: 7px; 
   padding: 10px;
   height: 95vh;
+}
+
+.drawing-board {
+  touch-action: none;
 }
 
 .block .options .option {
