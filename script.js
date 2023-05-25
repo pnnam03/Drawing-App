@@ -36,65 +36,7 @@ let ctx = canvas.getContext("2d"),
 // initialize a selection area
 shape = { x: null, y: null, w: null, h: null };
 
-//
-window.addEventListener("load", () => {
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-
-  tmpCanvas.width = tmpCanvas.offsetWidth;
-  tmpCanvas.height = tmpCanvas.offsetHeight;
-
-  ctx.fillStyle = backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  reundoBtn.disabled = true;
-  selectionInterupt();
-});
-
-window.addEventListener("resize", () => {
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-
-  tmpCanvas.width = tmpCanvas.offsetWidth;
-  tmpCanvas.height = tmpCanvas.offsetHeight;
-
-  ctx.fillStyle = backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  selectionInterupt();
-  if (lastSnapshot != null) ctx.putImageData(lastSnapshot, 0, 0);
-});
-
-const drawCircle = (e) => {
-  radius = Math.sqrt(
-    (e.offsetX - preX) * (e.offsetX - preX) +
-      (e.offsetY - preY) * (e.offsetY - preY)
-  );
-
-  ctx.beginPath();
-  ctx.arc(preX, preY, radius, 0, 2 * Math.PI);
-  if (isFill) ctx.fill();
-  else ctx.stroke();
-};
-
-const drawRect = (e) => {
-  if (isFill) {
-    ctx.fillRect(preX, preY, e.offsetX - preX, e.offsetY - preY);
-    ctx.fill();
-    return;
-  }
-  ctx.strokeRect(preX, preY, e.offsetX - preX, e.offsetY - preY);
-  ctx.stroke();
-};
-
-const drawStraightLine = (e) => {
-  ctx.beginPath();
-  ctx.moveTo(preX, preY);
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-};
-
-const draw = (e) => {
+function mouseMove(e) {
   if (currentTool == "selection") {
     if (isDrawing) {
       shape.w = e.offsetX - shape.x;
@@ -110,6 +52,7 @@ const draw = (e) => {
     return;
   }
 
+  // currentTool is not selection tool
   if (!isDrawing) return;
   if (snapshot != null) ctx.putImageData(snapshot, 0, 0);
 
@@ -134,44 +77,12 @@ const draw = (e) => {
       break;
   }
   lastSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-};
-
-function selectionInitializer() {
-  isDragging = false;
-  dx = 0;
-  dy = 0;
-  existShape = false;
-  isDrawing = false;
-  cancelDragging = false;
-  curSelection = null;
-  tmpsnapshot = null;
-  isFilledBack = false;
-  shape = { x: null, y: null, w: null, h: null };
-  return;
 }
 
-function renderSelection(rect) {
-  if (tmpsnapshot != null) tmpCtx.putImageData(tmpsnapshot, 0, 0);
-  if (curSelection != null) tmpCtx.putImageData(curSelection, rect.x, rect.y);
-  tmpCtx.lineWidth = 1;
-  tmpCtx.setLineDash([5]);
-  tmpCtx.strokeRect(rect.x, rect.y, rect.w, rect.h);
-}
-
-function selectionInterupt() {
-  // mousedown and not inside selected area
-  // select, drag and drop finished
-  if (curSelection != null) ctx.putImageData(curSelection, shape.x, shape.y);
-  tmpCtx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // initialize selection variables for next selection
-  selectionInitializer();
-}
-
-const mouseDown = (e) => {
-  snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+function mouseDown(e) {
+  if (!existShape)
+    snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
   if (currentTool == "selection") {
-    if (cancelDragging) return;
     if (!existShape) {
       // not finished selecting area
       isDrawing = true;
@@ -201,7 +112,7 @@ const mouseDown = (e) => {
     }
 
     selectionInterupt();
-    snapshot = lastSnapshot;
+    //snapshot = lastSnapshot;
 
     // this solve the misinteraction between Undo/Redo and Selection Tool
     reundoBtn.disabled = true;
@@ -226,14 +137,16 @@ const mouseDown = (e) => {
 
   reundoBtn.disabled = true;
   undoBtn.disabled = false;
-};
+}
 
-const mouseUp = () => {
+function mouseUp() {
   if (currentTool == "selection") {
     isDragging = false;
     isDrawing = false;
 
     if (!existShape) {
+      // this solve the problem when you selected nothing
+      if (shape.w * shape.h == 0) return;
       // this solved the problem when you drag from different start direction
       if (shape.w < 0) shape.x += shape.w;
       if (shape.h < 0) shape.y += shape.h;
@@ -247,45 +160,93 @@ const mouseUp = () => {
     return;
   }
   isDrawing = false;
-};
+}
 
-const clearCanvas = () => {
-  selectionInterupt();
-  snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-};
-
-[tmpCanvas, canvas].forEach((cv) => {
-  cv.addEventListener("pointerdown", mouseDown);
-});
-
-[tmpCanvas, canvas].forEach((cv) => {
-  cv.addEventListener("pointerup", mouseUp);
-});
-
-[tmpCanvas, canvas].forEach((cv) => {
-  cv.addEventListener("pointermove", draw);
-});
-
-clearBtn.addEventListener("click", clearCanvas);
-
-toolBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    // adding click event to all tool option
-    // removing active class from the previous option and adding on current clicked option
-    document.querySelector(".options .active").classList.remove("active");
-    btn.classList.add("active");
-    currentTool = btn.id;
-    if (currentTool == "selection") selectionInitializer();
-    selectionInterupt();
-  });
-});
+// function to do smth :>
+function selectionInitializer() {
+  isDragging = false;
+  dx = 0;
+  dy = 0;
+  existShape = false;
+  isDrawing = false;
+  cancelDragging = false;
+  curSelection = null;
+  tmpsnapshot = null;
+  isFilledBack = false;
+  shape = { x: null, y: null, w: null, h: null };
+  return;
+}
 
 function setColor(element) {
   currentColor = element.style.background;
   selectionInterupt();
 }
 
+function clearCanvas() {
+  selectionInterupt();
+  snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function isInside(rect, mouse) {
+  var dx = mouse.offsetX - rect.x;
+  var dy = mouse.offsetY - rect.y;
+  if (
+    mouse.offsetX - rect.x >= 0 &&
+    mouse.offsetX - rect.x <= rect.w &&
+    mouse.offsetY - rect.y >= 0 &&
+    mouse.offsetY - rect.y <= rect.h
+  )
+    return true;
+  return false;
+}
+
+function setActiveTool(tool) {
+  document.querySelector(".options .active").classList.remove("active");
+  document.querySelector("#" + tool).classList.add("active");
+  currentTool = tool;
+}
+
+function selectionInterupt() {
+  // mousedown and not inside selected area
+  // select, drag and drop finished
+  if (curSelection != null) ctx.putImageData(curSelection, shape.x, shape.y);
+  tmpCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // initialize selection variables for next selection
+  selectionInitializer();
+}
+
+// interact with window event(load, resize, ..)
+window.addEventListener("load", () => {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  tmpCanvas.width = tmpCanvas.offsetWidth;
+  tmpCanvas.height = tmpCanvas.offsetHeight;
+
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  reundoBtn.disabled = true;
+  selectionInterupt();
+});
+
+window.addEventListener("resize", () => {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  tmpCanvas.width = tmpCanvas.offsetWidth;
+  tmpCanvas.height = tmpCanvas.offsetHeight;
+
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  selectionInterupt();
+  if (lastSnapshot != null) ctx.putImageData(lastSnapshot, 0, 0);
+});
+
+// interact with buttons and input
 colorPicker.addEventListener("input", () => {
   selectionInterupt();
   currentColor = colorPicker.value;
@@ -318,28 +279,75 @@ reundoBtn.addEventListener("click", () => {
 
 saveBtn.addEventListener("click", () => {
   selectionInterupt();
-  console.log("btn clicked");
   const link = document.createElement("a");
   link.download = "myImage.jpg";
   link.href = canvas.toDataURL();
   link.click();
 });
 
-function isInside(rect, mouse) {
-  var dx = mouse.offsetX - rect.x;
-  var dy = mouse.offsetY - rect.y;
-  if (
-    mouse.offsetX - rect.x >= 0 &&
-    mouse.offsetX - rect.x <= rect.w &&
-    mouse.offsetY - rect.y >= 0 &&
-    mouse.offsetY - rect.y <= rect.h
-  )
-    return true;
-  return false;
+toolBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    // adding click event to all tool option
+    // removing active class from the previous option and adding on current clicked option
+    document.querySelector(".options .active").classList.remove("active");
+    btn.classList.add("active");
+    currentTool = btn.id;
+    if (currentTool == "selection") selectionInitializer();
+    selectionInterupt();
+  });
+});
+
+clearBtn.addEventListener("click", clearCanvas);
+
+// draw shapes
+function drawCircle(e) {
+  radius = Math.sqrt(
+    (e.offsetX - preX) * (e.offsetX - preX) +
+      (e.offsetY - preY) * (e.offsetY - preY)
+  );
+
+  ctx.beginPath();
+  ctx.arc(preX, preY, radius, 0, 2 * Math.PI);
+  if (isFill) ctx.fill();
+  else ctx.stroke();
 }
 
-function setActiveTool(tool) {
-  document.querySelector(".options .active").classList.remove("active");
-  document.querySelector("#" + tool).classList.add("active");
-  currentTool = tool;
+function drawRect(e) {
+  if (isFill) {
+    ctx.fillRect(preX, preY, e.offsetX - preX, e.offsetY - preY);
+    ctx.fill();
+    return;
+  }
+  ctx.strokeRect(preX, preY, e.offsetX - preX, e.offsetY - preY);
+  ctx.stroke();
 }
+
+function drawStraightLine(e) {
+  ctx.beginPath();
+  ctx.moveTo(preX, preY);
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+}
+
+// this draw the rectangle with dash border
+// show the border of the selection
+function renderSelection(rect) {
+  if (tmpsnapshot != null) tmpCtx.putImageData(tmpsnapshot, 0, 0);
+  if (curSelection != null) tmpCtx.putImageData(curSelection, rect.x, rect.y);
+  tmpCtx.lineWidth = 1;
+  tmpCtx.setLineDash([5]);
+  tmpCtx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+}
+
+// interact with canvas
+[tmpCanvas, canvas].forEach((cv) => {
+  cv.addEventListener("pointerdown", mouseDown);
+});
+
+[tmpCanvas, canvas].forEach((cv) => {
+  cv.addEventListener("pointerup", mouseUp);
+});
+
+[tmpCanvas, canvas].forEach((cv) => {
+  cv.addEventListener("pointermove", mouseMove);
+});
