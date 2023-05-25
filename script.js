@@ -9,18 +9,19 @@ const reundoBtn = document.querySelector(".reundo");
 const saveBlock = document.querySelector("#save-block");
 const saveBtn = document.querySelector(".save-image");
 
-ctx = canvas.getContext("2d");
-currentTool = "brush";
-currentColor = "black";
-currentSize = 5;
-isDrawing = false;
-isFill = false;
-preX = 0;
-preY = 0;
-preRadius = 0;
-let snapshot = null,
+let ctx = canvas.getContext("2d"),
+  currentTool = "brush",
+  currentColor = "black",
+  currentSize = 3,
+  isDrawing = false,
+  isFill = false,
+  preX = 0,
+  preY = 0,
+  preRadius = 0,
+  snapshot = null,
   curSnapshot = null,
   lastSnapshot = null;
+let curSelection = null;
 
 window.addEventListener("load", () => {
   canvas.width = canvas.offsetWidth;
@@ -28,12 +29,11 @@ window.addEventListener("load", () => {
   reundoBtn.disabled = true;
 });
 
-window.addEventListener("resize",() => {
+window.addEventListener("resize", () => {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
-  if (lastSnapshot != null)
-  ctx.putImageData(lastSnapshot,0,0);
-})
+  if (lastSnapshot != null) ctx.putImageData(lastSnapshot, 0, 0);
+});
 
 const drawCircle = (e) => {
   radius = Math.sqrt(
@@ -64,24 +64,50 @@ const drawStraightLine = (e) => {
   ctx.stroke();
 };
 
+const renderSelection = (e) => {
+  ctx.lineWidth = 1; // draw a rectangular selection
+  ctx.setLineDash([3]); // dashed rect
+  ctx.strokeRect(preX, preY, e.offsetX - preX, e.offsetY - preY);
+  ctx.stroke();
+  ctx.setLineDash([0]); // return the settings: lineDash = 0
+  ctx.lineWidth = currentSize; // return the size
+  var toReturn = new Selection_Obj(
+    preX,
+    preY,
+    e.offsetX - preX,
+    e.offsetY - preY
+  );
+  return toReturn;
+};
+
 const draw = (e) => {
   if (!isDrawing) return;
   ctx.putImageData(snapshot, 0, 0);
-  if (currentTool == "brush") {
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-  } else if (currentTool == "eraser") {
-    ctx.strokeStyle = "white";
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-  } else if (currentTool == "circle") {
-    drawCircle(e);
-  } else if (currentTool == "rectangle") {
-    drawRect(e);
-  } else if (currentTool == "straight-line") {
-    drawStraightLine(e);
+
+  switch (currentTool) {
+    case "brush":
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      break;
+    case "eraser":
+      ctx.strokeStyle = "white";
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      break;
+    case "circle":
+      drawCircle(e);
+      break;
+    case "rectangle":
+      drawRect(e);
+      break;
+    case "straight-line":
+      drawStraightLine(e);
+      break;
+    case "selection":
+      curSelection = renderSelection(e);
+      break;
   }
-  lastSnapshot = ctx.getImageData(0,0,canvas.width, canvas.height);
+  lastSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
 };
 
 const mouseDown = (e) => {
@@ -156,10 +182,10 @@ reundoBtn.addEventListener("click", () => {
   undoBtn.disabled = false;
 });
 
-saveBtn.addEventListener("click",() => {
+saveBtn.addEventListener("click", () => {
   console.log("btn clicked");
   const link = document.createElement("a");
   link.download = "myImage.jpg";
   link.href = canvas.toDataURL();
   link.click();
-})
+});

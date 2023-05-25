@@ -103,3 +103,8 @@ label {
 .button:hover{
   color: #0095F3;
 }
+
+.icon {
+  width: 20px;
+  height: 20px;
+}

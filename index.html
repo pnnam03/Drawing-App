@@ -12,15 +12,15 @@
                 <label>Shapes</label>
                 <ul class="options">
                     <li class="option tool" id="circle">
-                        <img src="icons/circle.svg">
+                        <img class="icon" src="icons/circle.svg">
                         <span>Circle</span>
                     </li>
                     <li class="option tool" id="rectangle">
-                        <img src="icons/rectangle.svg">
+                        <img class="icon" src="icons/rectangle.svg">
                         <span>Rectangle</span>
                     </li>
                    <li class="option tool" id="straight-line">
-                        <img src="icons/straight-line.png" width="20" height="20">
+                        <img class="icon" src="icons/straight-line.png">
                         <span>Straight Line</span>
                     </li>
                     <li class="option">
@@ -34,12 +34,16 @@
                 <label>Options</label>
                 <ul class="options">
                     <li class="option active tool" id="brush">
-                        <img src="icons/brush.svg">
+                        <img src="icons/brush.svg" class="icon">
                         <span>Brush</span>
                     </li>
                     <li class="option tool" id="eraser">
-                        <img src="icons/eraser.svg">
+                        <img src="icons/eraser.svg" class="icon">
                         <span>Eraser</span>
+                    </li>
+                    <li class="option tool" id="selection">
+                        <img src="icons/selection.png" class="icon">
+                        <span>Selection Tool</span>
                     </li>
                     <li class="option">
                         <input type="range" value=5 min=1 max=10 id="size-slider">
@@ -58,29 +62,31 @@
             </div>
             
             <div class="block special-button">
-                <label>Options</label>
-                <div>
-                    <img src="icons/clear.png" width="20" height="20">
-                    <button class="clear-canvas button">Clear Canvas</button>
-                </div>
-                <div id="save-block">
-                    <img src="icons/save.png" width="20" height="20">
-                    <button class="save-image button">Save As Image</button>
-                </div>
-                <div>
-                    <img src="icons/undo.png" width="20" height="20">
-                    <button class="undo button">Undo</button>
-                </div>
-                <div>
-                    <img src="icons/redo.png" width="20" height="20">
-                    <button class="reundo button">Redo</button>
-                </div>
+                <label></label>
+                <ul style="list-style:none;">
+
+                    <li>
+                        <img class="icon" src="icons/clear.png">
+                        <button class="clear-canvas button">Clear Canvas</button>
+                    </li>
+                    <li id="save-block">
+                        <img class="icon" src="icons/save.png">
+                        <button class="save-image button">Save As Image</button>
+                    </li>
+                    <li>
+                        <img class="icon" src="icons/undo.png">
+                        <button class="undo button">Undo</button>
+                    </li>
+                    <li>
+                        <img class="icon" src="icons/redo.png">
+                        <button class="reundo button">Redo</button>
+                    </li>
+                </ul>
             </div>
         </section>
 
         <section class="drawing-board">
-            <canvas>
-            </canvas>
+            <canvas> </canvas>
         </section>
     </div>
     <script src="script.js"></script>
