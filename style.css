@@ -28,6 +28,24 @@ section {
 
 .drawing-board {
   touch-action: none;
+  position: relative;
+}
+
+.drawing-board canvas{ /* this put both canvas and tmp-canvas in same spot*/
+  position: absolute; 
+  top: 0;
+  left: 0;
+}
+
+/*
+set tmp-canvas z-index to 1
+=> tmp-canvas is on top of canvas
+*/
+#canvas {
+  z-index: 0;
+}
+#tmp-canvas {
+  z-index: 1;
 }
 
 .block .options .option {

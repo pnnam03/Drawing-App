@@ -1,4 +1,5 @@
-const canvas = document.querySelector("canvas");
+const canvas = document.querySelector("#canvas");
+const tmpCanvas = document.querySelector("#tmp-canvas");
 const clearBtn = document.querySelector(".clear-canvas");
 const toolBtns = document.querySelectorAll(".tool");
 const colorPicker = document.querySelector(".color-picker");
@@ -9,6 +10,7 @@ const reundoBtn = document.querySelector(".reundo");
 const saveBlock = document.querySelector("#save-block");
 const saveBtn = document.querySelector(".save-image");
 
+let tmpCtx = tmpCanvas.getContext("2d");
 let ctx = canvas.getContext("2d"),
   currentTool = "brush",
   currentColor = "black",
@@ -20,18 +22,43 @@ let ctx = canvas.getContext("2d"),
   preRadius = 0,
   snapshot = null,
   curSnapshot = null,
-  lastSnapshot = null;
-let curSelection = null;
+  lastSnapshot = null,
+  curSelection = null,
+  backgroundColor = "white",
+  isDragging = false,
+  existShape = false,
+  cancelDragging = false,
+  isFilledBack = false,
+  dx = 0,
+  dy = 0;
 
+// initialize a selection area
+shape = { x: null, y: null, w: null, h: null };
+
+//
 window.addEventListener("load", () => {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
+
+  tmpCanvas.width = tmpCanvas.offsetWidth;
+  tmpCanvas.height = tmpCanvas.offsetHeight;
+
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   reundoBtn.disabled = true;
 });
 
 window.addEventListener("resize", () => {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
+
+  tmpCanvas.width = tmpCanvas.offsetWidth;
+  tmpCanvas.height = tmpCanvas.offsetHeight;
+
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   if (lastSnapshot != null) ctx.putImageData(lastSnapshot, 0, 0);
 });
 
@@ -64,23 +91,22 @@ const drawStraightLine = (e) => {
   ctx.stroke();
 };
 
-const renderSelection = (e) => {
-  ctx.lineWidth = 1; // draw a rectangular selection
-  ctx.setLineDash([3]); // dashed rect
-  ctx.strokeRect(preX, preY, e.offsetX - preX, e.offsetY - preY);
-  ctx.stroke();
-  ctx.setLineDash([0]); // return the settings: lineDash = 0
-  ctx.lineWidth = currentSize; // return the size
-  var toReturn = new Selection_Obj(
-    preX,
-    preY,
-    e.offsetX - preX,
-    e.offsetY - preY
-  );
-  return toReturn;
-};
-
 const draw = (e) => {
+  if (currentTool == "selection") {
+    if (isDrawing) {
+      shape.w = e.offsetX - shape.x;
+      shape.h = e.offsetY - shape.y;
+      renderSelection(shape);
+    }
+    if (isDragging) {
+      //drawRect(shape);
+      shape.x = -dx + e.offsetX;
+      shape.y = -dy + e.offsetY;
+      renderSelection(shape);
+    }
+    return;
+  }
+
   if (!isDrawing) return;
   ctx.putImageData(snapshot, 0, 0);
 
@@ -103,14 +129,70 @@ const draw = (e) => {
     case "straight-line":
       drawStraightLine(e);
       break;
-    case "selection":
-      curSelection = renderSelection(e);
-      break;
   }
   lastSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
 };
 
+function selectionInitializer() {
+  isDragging = false;
+  dx = 0;
+  dy = 0;
+  existShape = false;
+  isDrawing = false;
+  cancelDragging = false;
+  curSelection = null;
+  isFilledBack = false;
+  shape = { x: null, y: null, w: null, h: null };
+  return;
+}
+
+function renderSelection(rect) {
+  if (snapshot != null) tmpCtx.putImageData(snapshot, 0, 0);
+  if (curSelection != null) tmpCtx.putImageData(curSelection, rect.x, rect.y);
+  tmpCtx.lineWidth = 1;
+  tmpCtx.setLineDash([5]);
+  tmpCtx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+}
+
 const mouseDown = (e) => {
+  if (currentTool == "selection") {
+    if (cancelDragging) return;
+    if (!existShape) {
+      // not finished selecting area
+      isDrawing = true;
+      snapshot = tmpCtx.getImageData(0, 0, canvas.width, canvas.height);
+      shape.x = e.offsetX;
+      shape.y = e.offsetY;
+      return;
+    }
+    // finished selecting an area
+    if (isInside(shape, e)) {
+      // if mousedown and is inside the area
+      // drag selected area
+      // fill the back of the selected area with background color ONCE
+      // if not isFilledBack
+      if (!isFilledBack) {
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(shape.x, shape.y, shape.w, shape.h);
+        isFilledBack = true;
+      }
+      isDragging = true;
+      dx = e.offsetX - shape.x;
+      dy = e.offsetY - shape.y;
+      return;
+    }
+
+    // mousedown and not inside selected area
+    // select, drag and drop finished
+    ctx.putImageData(curSelection, shape.x, shape.y);
+    tmpCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // initialize selection variables for next selection
+    selectionInitializer();
+    return;
+  }
+
+  // current tool is not selection tool
   isDrawing = true;
   ctx.beginPath();
   ctx.moveTo(e.offsetX, e.offsetY);
@@ -126,10 +208,19 @@ const mouseDown = (e) => {
   reundoBtn.disabled = true;
   undoBtn.disabled = false;
   snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  //console.log(preX, preY);
 };
 
 const mouseUp = () => {
+  if (currentTool == "selection") {
+    isDragging = false;
+    isDrawing = false;
+    if (!existShape) {
+      // the selected area is stored in curSelection
+      curSelection = ctx.getImageData(shape.x, shape.y, shape.w, shape.h);
+    }
+    existShape = true;
+    return;
+  }
   isDrawing = false;
 };
 
@@ -138,9 +229,18 @@ const clearCanvas = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-canvas.addEventListener("pointerdown", mouseDown);
-canvas.addEventListener("pointerup", mouseUp);
-canvas.addEventListener("pointermove", draw);
+[tmpCanvas, canvas].forEach((cv) => {
+  cv.addEventListener("pointerdown", mouseDown);
+});
+
+[tmpCanvas, canvas].forEach((cv) => {
+  cv.addEventListener("pointerup", mouseUp);
+});
+
+[tmpCanvas, canvas].forEach((cv) => {
+  cv.addEventListener("pointermove", draw);
+});
+
 clearBtn.addEventListener("click", clearCanvas);
 
 toolBtns.forEach((btn) => {
@@ -150,6 +250,7 @@ toolBtns.forEach((btn) => {
     document.querySelector(".options .active").classList.remove("active");
     btn.classList.add("active");
     currentTool = btn.id;
+    if (currentTool == "selection") selectionInitializer();
   });
 });
 
@@ -189,3 +290,22 @@ saveBtn.addEventListener("click", () => {
   link.href = canvas.toDataURL();
   link.click();
 });
+
+function isInside(rect, mouse) {
+  var dx = mouse.offsetX - rect.x;
+  var dy = mouse.offsetY - rect.y;
+  if (
+    mouse.offsetX - rect.x >= 0 &&
+    mouse.offsetX - rect.x <= rect.w &&
+    mouse.offsetY - rect.y >= 0 &&
+    mouse.offsetY - rect.y <= rect.h
+  )
+    return true;
+  return false;
+}
+
+function setActiveTool(tool) {
+  document.querySelector(".options .active").classList.remove("active");
+  document.querySelector("#" + tool).classList.add("active");
+  currentTool = tool;
+}
