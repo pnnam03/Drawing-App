@@ -37,6 +37,14 @@ let ctx = canvas.getContext("2d"),
 shape = { x: null, y: null, w: null, h: null };
 
 function mouseMove(e) {
+  if (shape != null && isInside(shape, e) && !isDrawing) {
+    canvas.style.cursor = "move";
+    tmpCanvas.style.cursor = "move";
+  } else {
+    canvas.style.cursor = "default";
+    tmpCanvas.style.cursor = "default";
+  }
+
   if (currentTool == "selection") {
     if (isDrawing) {
       shape.w = e.offsetX - shape.x;
@@ -140,6 +148,12 @@ function mouseDown(e) {
 }
 
 function mouseUp() {
+  // fix the interaction between Undo/Redo and Selection Tool
+  if (existShape && undoBtn.disabled == true) {
+    undoBtn.disabled = false;
+    reundoBtn.disabled = true;
+  }
+
   if (currentTool == "selection") {
     isDragging = false;
     isDrawing = false;
@@ -153,10 +167,28 @@ function mouseUp() {
       shape.w = Math.abs(shape.w);
       shape.h = Math.abs(shape.h);
 
+      shape.x = Math.floor(shape.x);
+      shape.y = Math.floor(shape.y);
+      shape.w = Math.floor(shape.w);
+      shape.h = Math.floor(shape.h);
       // the selected area is stored in curSelection
       curSelection = ctx.getImageData(shape.x, shape.y, shape.w, shape.h);
     }
     existShape = true;
+    window.addEventListener("keydown", (e) => {
+      if (e.key == "Delete") {
+        // delete the current selection
+        console.log(e.key);
+        console.log(shape);
+
+        curSelection = null;
+        ctx.clearRect(shape.x, shape.y, shape.w, shape.h);
+        //tmpCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+        selectionInterupt();
+      }
+      return;
+    });
     return;
   }
   isDrawing = false;
