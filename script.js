@@ -167,10 +167,6 @@ function mouseUp() {
       shape.w = Math.abs(shape.w);
       shape.h = Math.abs(shape.h);
 
-      shape.x = Math.floor(shape.x);
-      shape.y = Math.floor(shape.y);
-      shape.w = Math.floor(shape.w);
-      shape.h = Math.floor(shape.h);
       // the selected area is stored in curSelection
       curSelection = ctx.getImageData(shape.x, shape.y, shape.w, shape.h);
     }
@@ -178,11 +174,10 @@ function mouseUp() {
     window.addEventListener("keydown", (e) => {
       if (e.key == "Delete") {
         // delete the current selection
-        console.log(e.key);
-        console.log(shape);
-
         curSelection = null;
-        ctx.clearRect(shape.x, shape.y, shape.w, shape.h);
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(shape.x, shape.y, shape.w, shape.h);
+        ctx.fill();
         //tmpCtx.clearRect(0, 0, canvas.width, canvas.height);
 
         selectionInterupt();
